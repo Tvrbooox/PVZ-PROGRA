@@ -4,7 +4,7 @@
 #include "utils_config.h"
 #include "utils_map.h"
 #include "logica.h"
-
+// Para compilar usar gcc -Wall -Wextra -o pvz main.c logica.c utils_map.c utils_config.c, y luego ./pvz
 void show_hud() {
     printf("\nAcciones:\n");
     printf("0. Cerrar juego\n");
