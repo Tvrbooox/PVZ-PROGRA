@@ -1,4 +1,4 @@
-#include "utils_config.h"
+#include "header.h"
 
 int load_config(const char *file_route, Config *config) { // Funcion para cargar datos de config en el struct correspondiente
     FILE *file = fopen(file_route, "r");
@@ -11,15 +11,15 @@ int load_config(const char *file_route, Config *config) { // Funcion para cargar
         return 0;
     }
 
-    char linea[100]; // Buffer para leer archivo
-    char clave[50];  // Guarda nombre y compara con nombre de config
-    int valor;       // Guarda valor de cada struct en config
+    char linea[100]; //buffer para leer archivo
+    char clave[50];  //guarda nombre y compara con nombre de config
+    int valor;       //guarda valor de cada struct en config
     while (fgets(linea, sizeof(linea), file)) {
-        linea[strcspn(linea, "\r\n")] = 0; // Quita saltos de linea y cursor
+        linea[strcspn(linea, "\r\n")] = 0; //salta saltos de linea
         if (linea[0] == '\0') {
             continue;
         }
-        if (sscanf(linea, "%49[^=]=%d", clave, &valor) == 2) { // sscanf busca clave en config, y si coincide guarda el valor correspondiente
+        if (sscanf(linea, "%49[^=]=%d", clave, &valor) == 2) { //sscanf busca clave en config, y si coincide guarda el valor correspondiente
             if (strcmp(clave, "VIDA_ZOMBIE_BASE") == 0) { config->vida_zombie_base = valor;
             } else if (strcmp(clave, "VIDA_ZOMBIE_FLAG") == 0) { config->vida_zombie_flag = valor;
             } else if (strcmp(clave, "VIDA_ZOMBIE_CONO") == 0) { config->vida_zombie_cono = valor;
