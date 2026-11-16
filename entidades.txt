@@ -1,0 +1,10 @@
+0 vacio
+1 lanzaguisantes
+2 girasol
+3 nuez
+4 jalapeño
+5 patata boom
+6 zombie base
+7 zombie flag
+8 zombie cono
+9 zombie rugby
