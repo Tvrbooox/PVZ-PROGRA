@@ -24,8 +24,8 @@ int main(){
     InitAudioDevice();
     SetTargetFPS(60);
 
-    int Opcion_Nivel;
-    int Pantalla;
+    int Opcion_Nivel = 0;
+    int Pantalla = 0;
 
     Opcion_Nivel=Menu();
     
@@ -35,6 +35,8 @@ int main(){
     Config config = {0};
     if (!load_config(elegir_nivel(Opcion_Nivel), &config)) {
         printf("No se pudo cargar el archivo\n");
+        CloseAudioDevice();
+        CloseWindow();
         return 1;
     }
     printf("Configuración cargada correctamente.\n");
@@ -42,6 +44,8 @@ int main(){
     Jardin *mapa = load_map("mapa_ceros.txt", &config);
     if (!mapa) {
         printf("No se pudo cargar el mapa inicial\n");
+        CloseAudioDevice();
+        CloseWindow();
         return 1;
     }
     printf("Mapa cargado con éxito (%d x %d).\n", mapa->fila, mapa->columna);
@@ -93,6 +97,9 @@ int main(){
         }else if (CheckCollisionPointRec(mouse,Jugar)){
 
             if((IsMouseButtonPressed(MOUSE_BUTTON_LEFT))){
+                clear_map(mapa);
+                mapa = create_custom_map(NumFilas, NumColumnas);
+                if (!mapa) return 1;
                 Opcion_Nivel=7;
             }
         }
@@ -105,8 +112,8 @@ int main(){
 
     //Configuraciones basicas
     if(Opcion_Nivel==5){ //Cargar
-        NumFilas=1;
-        NumColumnas=1;
+        NumFilas = mapa->fila;
+        NumColumnas = mapa->columna;
     } 
 
     if(Opcion_Nivel<=3 && Opcion_Nivel>0){
