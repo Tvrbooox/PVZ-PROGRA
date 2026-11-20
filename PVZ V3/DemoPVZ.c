@@ -11,7 +11,7 @@ const char* elegir_nivel(int Opcion_Nivel) {
         return "config_facil.txt";
     } else if (Opcion_Nivel == 3) {
         return "config_dificil.txt";
-    } else if (Opcion_Nivel == 2 || Opcion_Nivel == 4) {
+    } else if (Opcion_Nivel == 2 || Opcion_Nivel == 4 || Opcion_Nivel == 5) {
         return "config_normal.txt";
     }
 
@@ -28,6 +28,11 @@ int main(){
     int Pantalla = 0;
 
     Opcion_Nivel=Menu();
+    if (Opcion_Nivel == 0) {
+        CloseAudioDevice();
+        CloseWindow();
+        return 0;
+    }
     
    //Cantidad de filas y columnas
    int NumFilas=3,NumColumnas=3;
