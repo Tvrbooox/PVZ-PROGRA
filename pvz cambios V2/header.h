@@ -94,7 +94,7 @@ int load_config(const char *file_route, Config *config);
 Jardin* load_map(const char* file_route, const Config* config);
 void print_map(const Jardin* mapa);
 void clear_map(Jardin* mapa);
-void make_map(const char* file_route, int filas, int columnas);
+Jardin* create_custom_map(int filas, int columnas);
 void print_config(const Config* config);
 
 #endif
