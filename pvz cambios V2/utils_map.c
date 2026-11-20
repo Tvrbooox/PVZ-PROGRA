@@ -173,3 +173,30 @@ void clear_map(Jardin* mapa) {
     free(mapa->grilla);
     free(mapa);
 }
+
+// hace mapa con memoria dinamica de dimensiones personalizadas
+Jardin* create_custom_map(int filas, int columnas) {
+    if (filas <= 0 || columnas <= 0) return NULL;
+    Jardin* mapa = (Jardin*)malloc(sizeof(Jardin));
+    if (!mapa) return NULL;
+    mapa->fila = filas;
+    mapa->columna = columnas;
+    // reserva puntero a filas
+    mapa->grilla = (Casilla**)malloc(filas * sizeof(Casilla*));
+    if (!mapa->grilla) {
+        free(mapa);
+        return NULL;
+    }
+    // reserva cada fila de columnas e inicializa las casillas en 0/NULL
+    for (int i = 0; i < filas; i++) {
+        mapa->grilla[i] = (Casilla*)calloc(columnas, sizeof(Casilla));
+        if (!mapa->grilla[i]) {
+            // si falla casilla se limpia todo
+            mapa->fila = i; 
+            clear_map(mapa);
+            return NULL;
+        }
+    }
+
+    return mapa;
+}
