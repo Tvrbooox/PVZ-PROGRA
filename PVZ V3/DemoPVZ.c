@@ -280,10 +280,6 @@ _______________________________________________________*/
         //Configurar parametros plantas
         ConfigurarPlantas(NumFilas,NumColumnas,MatrizNueva,MatrizNueces,Tamaño_CeldasX,Tamaño_CeldasY,CoordXInicio,CoordYInicio,Nueces,MatrizLanzaguisantes,Lanzaguisantes,MatrizGirasoles,Girasoles,MatrizJalapenos,Jalapenos,MatrizPatatas,Patatas,&config);
 
-        //Configurar parametros plantas
-        ConfigurarPlantas(NumFilas,NumColumnas,MatrizNueva,MatrizNueces,Tamaño_CeldasX,Tamaño_CeldasY,CoordXInicio,CoordYInicio,Nueces,MatrizLanzaguisantes,Lanzaguisantes,MatrizGirasoles,Girasoles,MatrizJalapenos,Jalapenos,MatrizPatatas,Patatas,&config);
-
-
         //TEMPORIZADORES
 
         //TEMPORIZADOR SOLES GENERADOS NATURALMENTE
