@@ -523,8 +523,9 @@ _______________________________________________________*/
         DrawTextureEx(Ganaste,(Vector2){70,-20},0.0f ,0.7, WHITE);
         //DrawTextureEx(PantallaDerrota,(Vector2){70,-20},0.0f ,0.7, WHITE);
         //DrawRectangle(570,644,212,90,RED);
+
         Rectangle MenuBoton=(Rectangle){570,644,212,90};
-        if (CheckCollisionPointRec(mouse,MenuBoton)){
+        if (CheckCollisionPointRec(mouse,MenuBoton) && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
 
             Opcion_Nivel=0;
             Pantalla=0;
