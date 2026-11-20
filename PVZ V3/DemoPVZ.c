@@ -400,6 +400,8 @@ _______________________________________________________*/
                     DrawTextureEx(Zombies[i].ColorZombie,(Vector2){Zombies[i].PosicionX-35,CoordYInicio-40+Tamaño_CeldasY*Zombies[i].Fila},0.0f ,0.16, WHITE);
                 }else if(Zombies[i].Tipo==8){
                     DrawTextureEx(Zombies[i].ColorZombie,(Vector2){Zombies[i].PosicionX-35,CoordYInicio-40+Tamaño_CeldasY*Zombies[i].Fila},0.0f ,0.12, WHITE);
+                }else if(Zombies[i].Tipo==9){
+                    DrawTextureEx(Zombies[i].ColorZombie,(Vector2){Zombies[i].PosicionX-35,CoordYInicio-40+Tamaño_CeldasY*Zombies[i].Fila},0.0f ,0.14, WHITE);
                 }
 
                 if(Zombies[i].Detenerse!=true && Zombies[i].Velocidad>0) Zombies[i].PosicionX-=(Zombies[i].Velocidad*6)*GetFrameTime();
