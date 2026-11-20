@@ -6,6 +6,18 @@
 #include "logica.h"
 #include "guardado.h"
 
+const char* elegir_nivel(int Opcion_Nivel) {
+    if (Opcion_Nivel == 1) {
+        return "config_facil.txt";
+    } else if (Opcion_Nivel == 3) {
+        return "config_dificil.txt";
+    } else if (Opcion_Nivel == 2 || Opcion_Nivel == 4) {
+        return "config_normal.txt";
+    }
+
+    return "";
+}
+
 int main(){
 
     InitWindow(1366, 768, "PVZ");
@@ -17,23 +29,11 @@ int main(){
 
     Opcion_Nivel=Menu();
     
-
-   const char* elegir_nivel() {
-        if (Opcion_Nivel == 1) {
-            return "config_facil.txt";
-        } else if (Opcion_Nivel == 3) {
-            return "config_dificil.txt";
-        } else if (Opcion_Nivel==2 || Opcion_Nivel==4){
-            return "config_normal.txt";
-        }
-        return "";
-   }
-
    //Cantidad de filas y columnas
    int NumFilas=3,NumColumnas=3;
 
     Config config = {0};
-    if (!load_config(elegir_nivel(), &config)) {
+    if (!load_config(elegir_nivel(Opcion_Nivel), &config)) {
         printf("No se pudo cargar el archivo\n");
         return 1;
     }
