@@ -71,7 +71,7 @@ void print_config(const Config *config) { // Imprime los valores almacenados de 
         printf("Configuracion invalida o nula.\n");
         return;
     }
-
+    //se utiliza ia para globalizar el concepto de la funcion
     printf("Configuracion cargada: \n");
     printf("Vida Zombie Base:      %d\n", config->vida_zombie_base);
     printf("Vida Zombie Flag:      %d\n", config->vida_zombie_flag);
