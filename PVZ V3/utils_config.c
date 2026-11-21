@@ -18,7 +18,7 @@ int load_config(const char *file_route, Config *config) { // Funcion para cargar
         linea[strcspn(linea, "\r\n")] = 0; //salta saltos de linea
         if (linea[0] == '\0') {
             continue;
-        }
+        }//se utilizo IA para globalizar la idea de la funcion a cada parametro
         if (sscanf(linea, "%49[^=]=%d", clave, &valor) == 2) { //sscanf busca clave en config, y si coincide guarda el valor correspondiente
             if (strcmp(clave, "VIDA_ZOMBIE_BASE") == 0) { config->vida_zombie_base = valor;
             } else if (strcmp(clave, "VIDA_ZOMBIE_FLAG") == 0) { config->vida_zombie_flag = valor;
