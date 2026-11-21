@@ -4,7 +4,6 @@
 #include <time.h>
 #include "header.h"
 #include "logica.h"
-#include "guardado.h"
 
 const char* elegir_nivel(int Opcion_Nivel) {
     if (Opcion_Nivel == 1) {
