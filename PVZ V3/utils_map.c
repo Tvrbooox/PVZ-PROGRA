@@ -7,7 +7,7 @@ Entidad* make_entity(Tipo_casilla tipo, const Config* config) {
     Entidad *entity = (Entidad*)malloc(sizeof(Entidad));//reserva memoria y toma el tipo de la casilla
     entity->tipo = tipo;
     entity->acumulador = 0;//todas las entidades parten con el acumulador en 0
-
+    //se declara uso de IA en esta funcion para expander la idea de la funcion a cada entidad
     switch (tipo) {//dependiendo del tipo, se aplican parametros de config
         case GIRASOL:
             entity->vida = config->vida_girasol;
