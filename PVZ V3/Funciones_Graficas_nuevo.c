@@ -717,6 +717,279 @@ void ColisionPatata(int MaxEntidades,Patata Patatas[MaxEntidades],ZombieGrafico 
             }
         }
     }
+// Guardado y carga
+
+// Lee solo el tamaño del tablero guardado
+int leer_dimensiones_partida(const char *ruta,int *filas,int *columnas) {
+    FILE *file = fopen(ruta,"r");
+    if (file == NULL) return 0;
+
+    int t,o,z,s,h,f,c;
+    int ok = (fscanf(file,"%d %d %d %d %d %d %d",&t,&o,&z,&s,&h,&f,&c) == 7);
+    fclose(file);
+
+    if (!ok || f < 1 || f > 10 || c < 1 || c > 10) return 0;
+    *filas = f;
+    *columnas = c;
+    return 1;
+}
+
+// Formato: linea 1 = turno oleada zombies_generados soles salud_casa, linea 2 = filas columnas, luego "fila columna tipo 0 0 0" por cada planta
+int guardar_partida(const char *ruta,int soles,int salud_casa,int turno,int oleada_actual,int zombies_generados_oleada,int NumFilas,int NumColumnas,int MatrizNueva[NumFilas][NumColumnas]) {
+    FILE *file = fopen(ruta,"w");
+    if (file == NULL) return 0;
+
+    fprintf(file,"%d %d %d %d %d\n",turno,oleada_actual,zombies_generados_oleada,soles,salud_casa);
+    fprintf(file,"%d %d\n",NumFilas,NumColumnas);
+
+    for (int i = 0; i < NumFilas; i++) {
+        for (int j = 0; j < NumColumnas; j++) {
+            if (MatrizNueva[i][j] == 0) continue;
+            fprintf(file,"%d %d %d %d %d %d\n",i,j,MatrizNueva[i][j],0,0,0);
+        }
+    }
+
+    int correcto = !ferror(file);
+    if (fclose(file) != 0) correcto = 0;
+    return correcto;
+}
+
+// Pasa el codigo de la matriz grafica al tipo del backend (en el enum 1 es lanzaguisante y 2 es girasol)
+static Tipo_casilla GraficoABackend(int codigo) {
+    if (codigo == 1) return GIRASOL;
+    if (codigo == 2) return LANZAGUISANTE;
+    if (codigo == 3) return NUEZ;
+    if (codigo == 4) return JALAPENO;
+    if (codigo == 5) return PATATA_BOOM;
+    return VACIO;
+}
+
+// Carga la partida y devuelve el mapa nuevo (NULL si falla)
+Jardin *cargar_partida(const char *ruta,const Config *config,int *soles,int *salud_casa,int *turno,int *oleada_actual,int *zombies_generados_oleada,int NumFilas,int NumColumnas,int MatrizNueva[NumFilas][NumColumnas]) {
+    if (NumFilas <= 0 || NumColumnas <= 0) return NULL;
+
+    FILE *file = fopen(ruta,"r");
+    if (file == NULL) return NULL;
+
+    int t,o,z,s,h,filas,columnas;
+
+    if (fscanf(file,"%d %d %d %d %d",&t,&o,&z,&s,&h) != 5 || fscanf(file,"%d %d",&filas,&columnas) != 2) {
+        fclose(file);
+        return NULL;
+    }
+
+    if (filas != NumFilas || columnas != NumColumnas || o < 1 || t < 0 || z < 0 || s < 0 || h < 0) {
+        fclose(file);
+        return NULL;
+    }
+
+    // Se lee primero a una matriz temporal por si el archivo esta malo
+    int temporal[NumFilas][NumColumnas];
+    Matriz_Ceros(NumFilas,NumColumnas,temporal);
+
+    int f,c,tipo,vida,acumulador,cant,leidos;
+    int error = 0;
+
+    while ((leidos = fscanf(file,"%d %d %d %d %d %d",&f,&c,&tipo,&vida,&acumulador,&cant)) == 6) {
+        if (f < 0 || f >= NumFilas || c < 0 || c >= NumColumnas || tipo < 1 || tipo > 7 || cant != 0 || temporal[f][c] != 0) {
+            error = 1;
+            break;
+        }
+
+        // Las mejoras (6 y 7) se cargan como la planta normal
+        if (tipo == 6) tipo = 2;
+        if (tipo == 7) tipo = 1;
+
+        temporal[f][c] = tipo;
+    }
+
+    if (leidos != EOF && leidos != 6) error = 1;
+
+    fclose(file);
+    if (error) return NULL;
+
+    Jardin *nuevo = create_custom_map(NumFilas,NumColumnas);
+    if (nuevo == NULL) return NULL;
+
+    for (int i = 0; i < NumFilas; i++) {
+        for (int j = 0; j < NumColumnas; j++) {
+            if (temporal[i][j] == 0) continue;
+
+            plant(&nuevo->grilla[i][j],GraficoABackend(temporal[i][j]),config);
+
+            if (nuevo->grilla[i][j].planta == NULL) {
+                clear_map(nuevo);
+                return NULL;
+            }
+        }
+    }
+
+    for (int i = 0; i < NumFilas; i++) {
+        for (int j = 0; j < NumColumnas; j++) {
+            MatrizNueva[i][j] = temporal[i][j];
+        }
+    }
+
+    *turno = t;
+    *oleada_actual = o;
+    *zombies_generados_oleada = z;
+    *soles = s;
+    *salud_casa = h;
+
+    return nuevo;
+}
+
+// Formato: linea 1 = cantidad de zombies, luego "tipo vida fila posicionX" por cada zombie
+int guardar_zombies(const char *ruta,ZombieGrafico Zombies[20]) {
+    FILE *file = fopen(ruta,"w");
+    if (file == NULL) return 0;
+
+    int cantidad = 0;
+    for (int i = 0; i < 20; i++) {
+        if (Zombies[i].Activo && Zombies[i].Vida > 0) cantidad++;
+    }
+
+    fprintf(file,"%d\n",cantidad);
+
+    for (int i = 0; i < 20; i++) {
+        if (Zombies[i].Activo && Zombies[i].Vida > 0) {
+            fprintf(file,"%d %d %d %.2f\n",Zombies[i].Tipo,Zombies[i].Vida,Zombies[i].Fila,Zombies[i].PosicionX);
+        }
+    }
+
+    int correcto = !ferror(file);
+    if (fclose(file) != 0) correcto = 0;
+    return correcto;
+}
+
+// Carga los zombies guardados, retorna 1 si salio bien y 0 si no (en ese caso no cambia el arreglo)
+int cargar_zombies(const char *ruta,ZombieGrafico Zombies[20],Config *config,Texture2D ZombieSprite,Texture2D FlagZombieSprite,Texture2D FootballZombie,int NumFilas,int CoordYInicio,int Tamaño_CeldasY) {
+    FILE *file = fopen(ruta,"r");
+    if (file == NULL) return 0;
+
+    int cantidad;
+    if (fscanf(file,"%d",&cantidad) != 1 || cantidad < 0 || cantidad > 20) {
+        fclose(file);
+        return 0;
+    }
+
+    ZombieGrafico temporal[20] = {0};
+    int error = 0;
+
+    for (int i = 0; i < cantidad; i++) {
+        int tipo,vida,fila;
+        float posx;
+
+        if (fscanf(file,"%d %d %d %f",&tipo,&vida,&fila,&posx) != 4 || tipo < 6 || tipo > 9 || vida <= 0 || fila < 0 || fila >= NumFilas) {
+            error = 1;
+            break;
+        }
+
+        temporal[i].Activo = true;
+        temporal[i].Tipo = tipo;
+        temporal[i].Vida = vida;
+        temporal[i].Fila = fila;
+        temporal[i].PosicionX = posx;
+        temporal[i].Detenerse = false;
+        temporal[i].TiempoGolpe = 0.0f;
+        temporal[i].Interactuando = 0;
+        temporal[i].Colision = (Rectangle){posx,CoordYInicio + (Tamaño_CeldasY / 2) + Tamaño_CeldasY * fila,40,40};
+        temporal[i].Daño = config->dmg_zombie_base;
+
+        if (tipo == 6) {
+            temporal[i].ColorZombie = ZombieSprite;
+            temporal[i].Velocidad = config->vel_zombie_base;
+        } else if (tipo == 7) {
+            temporal[i].ColorZombie = FlagZombieSprite;
+            temporal[i].Velocidad = config->vel_zombie_flag;
+        } else if (tipo == 8) {
+            temporal[i].ColorZombie = ZombieSprite;
+            temporal[i].Velocidad = config->vel_zombie_cono;
+        } else {
+            temporal[i].ColorZombie = FootballZombie;
+            temporal[i].Velocidad = config->vel_zombie_rugby;
+        }
+    }
+
+    fclose(file);
+    if (error) return 0;
+
+    for (int i = 0; i < 20; i++) {
+        Zombies[i] = temporal[i];
+    }
+    return 1;
+}
+
+// Deja todo el estado de la partida en cero (no se toca el Sprite de las patatas)
+void LimpiarPartida(int NumFilas,int NumColumnas,int MatrizNueces[NumFilas][NumColumnas],int MatrizLanzaguisantes[NumFilas][NumColumnas],int MatrizGirasoles[NumFilas][NumColumnas],int MatrizJalapenos[NumFilas][NumColumnas],int MatrizPatatas[NumFilas][NumColumnas],int MatrizConfirmacion[NumFilas][NumColumnas],Nuez Nueces[10],Lanzaguisante Lanzaguisantes[10],Girasol Girasoles[10],Jalapeno Jalapenos[10],Patata Patatas[10],Guisante Guisantes[10],FuegoJalapeno FuegoJalapenos[10],Sol Soles[10],GirasolSol GirasolSoles[10]) {
+    Matriz_Ceros(NumFilas,NumColumnas,MatrizNueces);
+    Matriz_Ceros(NumFilas,NumColumnas,MatrizLanzaguisantes);
+    Matriz_Ceros(NumFilas,NumColumnas,MatrizGirasoles);
+    Matriz_Ceros(NumFilas,NumColumnas,MatrizJalapenos);
+    Matriz_Ceros(NumFilas,NumColumnas,MatrizPatatas);
+    Matriz_Ceros(NumFilas,NumColumnas,MatrizConfirmacion);
+
+    Rectangle Vacio = (Rectangle){0,0,0,0};
+
+    for (int i = 0; i < 10; i++) {
+        Nueces[i].Activo = false;
+        Nueces[i].Vida = 0;
+        Nueces[i].Colision = Vacio;
+
+        Lanzaguisantes[i].activo = false;
+        Lanzaguisantes[i].tiempo = 0;
+        Lanzaguisantes[i].Vida = 0;
+        Lanzaguisantes[i].Colision = Vacio;
+        Lanzaguisantes[i].ColisionLanzar = Vacio;
+        Lanzaguisantes[i].Mejora = false;
+        Lanzaguisantes[i].TiempoMejora = 0;
+
+        Girasoles[i].activo = false;
+        Girasoles[i].tiempo = 0;
+        Girasoles[i].Vida = 0;
+        Girasoles[i].Colision = Vacio;
+        Girasoles[i].Mejora = false;
+
+        Jalapenos[i].Activo = false;
+        Jalapenos[i].Vida = 0;
+        Jalapenos[i].Colision = Vacio;
+        Jalapenos[i].Tiempo = 0;
+
+        Patatas[i].Activo = false;
+        Patatas[i].ExplosionActiva = false;
+        Patatas[i].Vida = 0;
+        Patatas[i].Colision = Vacio;
+        Patatas[i].ColisionExplosion = Vacio;
+        Patatas[i].Tiempo = 0;
+        Patatas[i].ExplosionSprite = false;
+        Patatas[i].TiempoSprite = 0;
+
+        Guisantes[i].activo = false;
+        Guisantes[i].Colision = Vacio;
+
+        FuegoJalapenos[i].Activo = false;
+        FuegoJalapenos[i].Tiempo = 0;
+        FuegoJalapenos[i].Colision = Vacio;
+
+        Soles[i].activo = 0;
+        Soles[i].Posicion = 0.0f;
+
+        GirasolSoles[i].activo = false;
+    }
+}
+
+// Deja los 20 zombies inactivos
+void LimpiarZombies(ZombieGrafico Zombies[20]) {
+    for (int i = 0; i < 20; i++) {
+        Zombies[i].Activo = false;
+        Zombies[i].Vida = 0;
+        Zombies[i].Tipo = 0;
+        Zombies[i].Velocidad = 0;
+        Zombies[i].Colision = (Rectangle){0,0,0,0};
+        Zombies[i].Detenerse = true;
+        Zombies[i].TiempoGolpe = 0.0f;
+        Zombies[i].Interactuando = 0;
+    }
 
 }
 
