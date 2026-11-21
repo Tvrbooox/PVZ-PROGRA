@@ -536,3 +536,8 @@ _______________________________________________________*/
         EndDrawing();
                 
     }
+clear_map(mapa);
+    CloseAudioDevice();
+    CloseWindow();
+    return 0;
+}
